@@ -34,14 +34,7 @@
   (->> (k/select contacts
                  (k/fields :priority :contactgivenname :contactfamilyname)
                  (k/where {:priority [not= nil]
-                           :userid   (user-email->uuid email-address)}))
-       (map #(str (:contactgivenname %)
-                  " "
-                  (:contactfamilyname %)
-                  " ("
-                  (:priority %)
-                  ")"))
-       (doall)))
+                           :userid   (user-email->uuid email-address)}))))
 
 ;
 ; HONEY
@@ -55,20 +48,48 @@
    :user     "admin"
    :password "admin"})
 
+(def query
+  (partial j/query pg-db))
+
 (defn user-email->uuid2
   [email-address]
-  (->> {:select [:userid]
-        :from [:registereduser]
-        :where [:= :useremail email-address]}
-       (h/format)
-       (j/query pg-db)
-       (first)
-       :userid))
+  (-> {:select [:userid]
+       :from [:registereduser]
+       :where [:= :useremail email-address]}
+      (h/format)
+      (query)
+      (first)
+      :userid))
 
-; (j/query db ["select * from items"])
+(defn contacts-with-priority2
+  [email-address]
+  (-> {:select [:priority :contactgivenname :contactfamilyname]
+       :from [:contacts]}
+      (merge-where [:= :userid (user-email->uuid2 email-address)])
+      (merge-where [:not= :priority nil])
+      (h/format)
+      (query)))
 
+
+;
+; HELPERS
+;
+
+(defn display-contacts-with-priority
+  [contacts]
+  (doseq [c contacts]
+    (println (str (:contactgivenname c)
+                  " "
+                  (:contactfamilyname c)
+                  " ("
+                  (:priority c)
+                  ")"))))
 
 (defn -main
   "I don't do a whole lot."
   [& x]
-  (println x "Hello, World!"))
+  (println "-+-+-+-+-+ KORMA +-+-+-+-+-")
+  (display-contacts-with-priority (contacts-with-priority "dr@t.de"))
+  (println "")
+  (println "-+-+-+-+-+ HONEY +-+-+-+-+-")
+  (display-contacts-with-priority (contacts-with-priority2 "dr@t.de")))
