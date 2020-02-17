@@ -31,7 +31,5 @@ The following licensing conditions and notices apply.
 
 ### License
 
-Copyright © since 2018 Tamanguu GmbH & Co KG
-
-The project uses a commercial, proprietary license, see `LICENSE.md`
+Copyright © since 2018 Tamanguu GmbH & Co KG, see `LICENSE`
 distributed together with this project.
